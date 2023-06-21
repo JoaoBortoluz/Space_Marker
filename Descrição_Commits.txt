@@ -1,0 +1,18 @@
+Primeiro commit: primeira versão do programa contento a tela, fundo, 
+caixa de mensagens(simpledialog),e o blit na tela na posicao onde foi clicado.
+
+Segundo commit: adição de um ícone para o jogo e a mudança da lista 'perguntas' para o dicionário 'estrelas'; 
+Já nas grandes alterações eu importei a biblioteca nativa 'Pickle' e criei 3 funções para mostrar
+os comandos do jogo, salvar o progresso em arquivo e carregar o arquivo do progresso 
+(caso ele exista, se não existir é criado um arquivo). Também impletei no loop principal 
+o comando para excluir o arquivo do progresso. Em todos os comandos que incluem a manipulação do 
+arquivo foi utilizada a biblioteca já citada anteriormente.
+
+Terceiro commit: Otimização do código(remoção de funções dentro do loop que 
+estavam sendo executadas varias vezes causando muitos travamentos, e mudança de update para flip),
+implementação do ponto e das linhas ligando cada mensagem na tela e criacão de um arquivo com descrição
+detalhada dos commits.
+
+Quarto commit:
+
+Quinto commit:

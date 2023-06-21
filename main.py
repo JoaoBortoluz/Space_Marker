@@ -4,22 +4,24 @@ import pickle
 from tkinter import simpledialog
 
 pygame.init()
+pygame.mixer.init()  # Inicializa o mixer do Pygame
 tamanho = (1200,700)
 display = pygame.display.set_mode(tamanho)
 pygame.display.set_caption("Jogo SPACE MARKER")
 icone = pygame.image.load("icone.png")
-reduzirIcone = pygame.transform.scale(icone,(32,32)) #Reduz o ícone para 32px por 32px
+reduzirIcone = pygame.transform.scale(icone, (32,32)) #Reduz o ícone para 32px por 32px
 pygame.display.set_icon(reduzirIcone)
 branco = (225,225,225)
-preto = (0,0,0)
-pergunta = ""
-estrelas = {} #Dicionário
-posicoes = []
-posicao = (0,0)
 clock = pygame.time.Clock()
 running = True
 
-#Imagens e objetos
+estrelas = {} #Dicionário
+posicoes = []
+
+posicaoX = []# posições separadas para ajudar a realização do ponto extra
+posicaoY = []
+
+#Imagens e musica
 fundo = pygame.image.load("space.png")
 
 #Bloco para exibir as instruções no canto superior esquerdo da tela
@@ -37,13 +39,19 @@ def instrucoes():
 #Bloco para salvar as estrelas(=progresso) selecionadas através de um arquivo
 def salvarProgresso():
     with open("DadosSalvos.pickle", "wb") as arquivo:
-        pickle.dump(estrelas, arquivo) #pickle.dump() = obj->bytes e grava ele em um arquivo
+        pickle.dump((estrelas, posicoes), arquivo) #pickle.dump() = obj->bytes e grava ele em um arquivo
 
 #Bloco para carregar as estrelas(=progresso) salvas e caso não tenha nenhum arquivo salvo(FileNotFoundError) é criado um arquivo 
-def carrgarProgresso():
+def carregarProgresso():
     try:
         with open("DadosSalvos.pickle", "rb") as arquivo:
-            estrelas.update(pickle.load(arquivo)) #pickle.load() = bytes->obj e lê o arquivo
+            #pickle.load() = bytes->obj e lê o arquivo
+            estrelas_salvas, posicoes_salvas = pickle.load(arquivo)
+            posicoes.clear()
+            estrelas.clear()
+            estrelas.update(estrelas_salvas)
+            posicoes.extend(posicoes_salvas)
+
     except FileNotFoundError:
         salvarProgresso()
 
@@ -56,36 +64,45 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             posicao = pygame.mouse.get_pos()
             pergunta = simpledialog.askstring("Espaço","Nome da estrela:")
-            #Verifica se a pergunta é igual a none ou a um espaço em branco
+            #Verifica se a pergunta não é igual a none ou a um espaço em branco
             if pergunta is not None and pergunta.strip() != "":
                 pergunta = pergunta + str(posicao)
             else:
                 pergunta = "Estrela Desconhecida" + str(posicao)
-            estrelas[pergunta] = posicao 
-        
+            estrelas[pergunta] = posicao
+            posicoes.append(posicao) 
+            posicaoX.append(posicao[0])
+            posicaoY.append(posicao[1])
+
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_F10 or event.key == pygame.K_ESCAPE:
                salvarProgresso() 
 
             elif event.key == pygame.K_F11:
-                carrgarProgresso()
+                carregarProgresso()
 
             #Bloco que exclui as estrelas(=progresso) salvas
             elif event.key == pygame.K_F12:
                 estrelas.clear() #Limpa o dicionário
-                with open("DadosSalvos.pickle", "wb") as arquivo:
-                    pickle.dump(estrelas, arquivo) 
+                posicoes.clear()
+                salvarProgresso() #salva o pickle em branco
+                
 
-        display.blit(fundo,(0,0))
-        instrucoes()
+    display.blit(fundo,(0,0))
+    instrucoes()
 
-        #Cria a mensagem e posiciona onde foi clicado        
-        for pergunta, posicao in estrelas.items():
-            mensagem_display = pygame.font.SysFont(None, 24).render(pergunta, True, branco)
-            display.blit(mensagem_display, posicao)
-        
-    #Atualização e clock da tela
-    pygame.display.update()
-    clock.tick(60)
+    #Cria a mensagem e posiciona onde foi clicado        
+    for pergunta, posicao in estrelas.items():
+        mensagem_display = pygame.font.SysFont(None, 24).render(pergunta, True, branco)
+        posicao_mensagem = (posicao[0]-10, posicao[1]+10) # ajusta a mensagem na tela
+        display.blit(mensagem_display, posicao_mensagem)
+        pygame.draw.circle(display, branco, posicao,4)
+    #Adiciona uma linha que liga uma estrela na outra
+    if len(posicoes) > 1:
+        pygame.draw.lines(display, branco, False, posicoes, 1)
+
+    # atualizção da tela
+    pygame.display.flip() # mudei para flip porque estava travando muito
+    clock.tick(60) 
 
 pygame.quit()
